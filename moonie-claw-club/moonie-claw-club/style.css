@@ -1,0 +1,651 @@
+/* =====================================================================
+   MOONIE CLAW CLUB — style.css
+   All visual styling and CSS animations live in this file.
+
+   TABLE OF CONTENTS
+     1. CONFIG  (the numbers you may want to change)  <-- start here
+     2. Page basics
+     3. Machine, window, claw and prize boxes
+     4. Controls (LEFT / GRAB / RIGHT)
+     5. Collection panel
+     6. Reveal screen (close-up box, open box, Moonie)
+     7. Sparkling stars
+     8. Reduced-motion setting
+   ===================================================================== */
+
+
+/* =====================================================================
+   1. CONFIG  — change numbers here, not in the middle of the file
+   ===================================================================== */
+:root {
+
+  /* ---- 1A. WHERE THE GLASS WINDOW IS (percent of machine.png) --------
+     machine.png is 1200 x 1800 pixels. The clear glass opening inside it
+     runs from x=168 to x=1032 and from y=540 to y=1124 (in those pixels).
+       left   = 168  / 1200 = 14%
+       top    = 540  / 1800 = 30%
+       width  = 864  / 1200 = 72%
+       height = 584  / 1800 = 32.44%
+     If you redraw machine.png with a different window, change these 4. */
+  --win-left:   14%;
+  --win-top:    30%;
+  --win-width:  72%;
+  --win-height: 32.44%;
+
+  /* The plain backdrop shown behind the claw, inside the window */
+  --window-bg: linear-gradient(#ffffff, #f3fafe);
+
+  /* ---- 1B. SIZES INSIDE THE WINDOW (percent of the window's width) ---- */
+  --claw-w:       37.5%;  /* width of the claw picture                     */
+  --box-w-front:  17%;    /* front row blind boxes (same size as the box
+                             drawn inside claw-closed-box.png)             */
+  --box-w-back:   15%;    /* back row blind boxes                          */
+  --back-row-lift: 9%;    /* how much higher the back row sits             */
+
+  /* ---- 1C. COLOURS ---- */
+  --page-bg:   #fff0ad;   /* same yellow as the edge of machine.png        */
+  --ink:       #303231;   /* the dark outline colour of your artwork       */
+  --sky:       #bfe3f2;
+  --sky-deep:  #8cc6de;
+  --lavender:  #dccdf7;
+  --lavender-deep: #b9a2ea;
+  --pink:      #ffa8c0;
+  --pink-deep: #f27a9e;
+  --mint:      #bdeed7;
+  --mint-deep: #7fd3ae;
+  --peach:     #ffd2a8;
+  --peach-deep:#f5a867;
+
+  /* ---- 1D. HOW BIG THE MACHINE IS ---- */
+  --stage-w: min(calc(100vw - 16px), 460px, calc((100svh - 150px) * 2 / 3));
+}
+
+
+/* =====================================================================
+   2. PAGE BASICS
+   ===================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+html, body { margin: 0; min-height: 100%; }
+
+body {
+  background: var(--page-bg);
+  color: var(--ink);
+  font-family: ui-rounded, "Nunito", "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+img { max-width: 100%; -webkit-user-drag: none; user-select: none; }
+
+.game {
+  min-height: 100svh;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 6px;
+  padding: 8px 8px 24px;
+}
+
+/* On wide landscape screens, put the controls beside the machine */
+@media (min-width: 900px) and (min-aspect-ratio: 1/1) {
+  :root { --stage-w: min(460px, calc((100svh - 24px) * 2 / 3)); }
+  .game {
+    grid-template-columns: auto minmax(300px, 380px);
+    justify-content: center;
+    align-items: center;
+    column-gap: 28px;
+  }
+}
+
+
+/* =====================================================================
+   3. MACHINE, WINDOW, CLAW AND PRIZE BOXES
+
+   Layers, back to front:
+     1. .window background  (plain white backdrop)
+     2. .claw               (the claw, behind the boxes while it descends)
+     3. .prize-box          (the pile of blind boxes)
+     4. .claw.in-front      (the closed claw + box, once it has grabbed)
+     5. .frame              (machine.png on top of everything)
+   ===================================================================== */
+.stage {
+  position: relative;
+  width: max(260px, var(--stage-w));
+  aspect-ratio: 2 / 3;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* White backing behind the whole glass opening, including the two small
+   lower corners beside the floor tray (so no page colour peeks through).
+   It is slightly taller than the clipping window on purpose. */
+.stage::before {
+  content: "";
+  position: absolute;
+  left:   var(--win-left);
+  top:    var(--win-top);
+  width:  var(--win-width);
+  height: calc(var(--win-height) + 3.9%);
+  background: #ffffff;
+  z-index: 0;
+}
+
+/* The clipping window. overflow:hidden is what keeps the claw and boxes
+   from ever showing outside the glass. */
+.window {
+  position: absolute;
+  left:   var(--win-left);
+  top:    var(--win-top);
+  width:  var(--win-width);
+  height: var(--win-height);
+  overflow: hidden;
+  background: var(--window-bg);
+  z-index: 1;
+}
+
+/* The machine frame: always on top, never blocks taps */
+.frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* ---- The claw ---- */
+.claw {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--claw-w);
+  aspect-ratio: 260 / 293;   /* must match the claw PNG size (260 x 293) */
+  z-index: 2;
+  pointer-events: none;
+  will-change: transform;
+}
+.claw.in-front { z-index: 6; }
+
+.claw-img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+.claw-closed { visibility: hidden; }
+.claw.is-closed .claw-open   { visibility: hidden; }
+.claw.is-closed .claw-closed { visibility: visible; }
+
+.claw.fade-out { opacity: 0; transition: opacity 0.35s ease; }
+
+/* The cable from the top of the window down to the claw */
+.cable {
+  position: absolute;
+  left: 50%;
+  bottom: 96%;
+  width: 1.6%;
+  min-width: 3px;
+  height: var(--cable-h, 0px);
+  transform: translateX(-50%);
+  background: var(--ink);
+  border-radius: 3px;
+}
+
+/* ---- The pile of blind boxes ---- */
+.prize-box {
+  position: absolute;
+  bottom: 0;
+  left: var(--x);
+  width: var(--box-w-front);
+  z-index: 4;
+  transform: translateX(-50%) rotate(var(--rot, 0deg));
+  transform-origin: 50% 100%;
+  pointer-events: none;
+}
+.prize-box.back {
+  z-index: 3;
+  bottom: var(--back-row-lift);
+  width: var(--box-w-back);
+  filter: brightness(0.97);
+}
+.prize-box.is-taken { visibility: hidden; }
+.prize-box.restock  { animation: restock 0.5s ease-out; }
+
+@keyframes restock {
+  from { opacity: 0; transform: translateX(-50%) rotate(var(--rot, 0deg)) scale(0.2); }
+  to   { opacity: 1; transform: translateX(-50%) rotate(var(--rot, 0deg)) scale(1); }
+}
+
+
+/* =====================================================================
+   4. CONTROLS
+   ===================================================================== */
+.controls {
+  width: min(100%, 460px);
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+
+.hint {
+  margin: 4px 0 0;
+  min-height: 1.4em;
+  font-weight: 800;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.keys-tip {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+@media (hover: none) { .keys-tip { display: none; } }
+
+.button-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1.25fr 1fr;
+  gap: 10px;
+  align-items: end;
+}
+
+/* Base look for every cute button */
+.btn {
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  background: var(--sky);
+  border: 3px solid var(--ink);
+  border-radius: 24px;
+  min-height: 64px;
+  padding: 8px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 6px 0 var(--sky-deep), 0 10px 14px rgba(48, 50, 49, 0.18);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s ease;
+
+  /* no text selection, no long-press menu, no double-tap zoom */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+.btn:hover:not(:disabled)  { filter: brightness(1.05); transform: translateY(-2px); }
+.btn:active:not(:disabled),
+.btn.is-pressed            { transform: translateY(5px); box-shadow: 0 1px 0 var(--sky-deep), 0 3px 6px rgba(48, 50, 49, 0.18); }
+.btn:focus-visible         { outline: 4px solid #ffffff; outline-offset: 2px; box-shadow: 0 0 0 7px var(--ink), 0 6px 0 var(--sky-deep); }
+.btn:disabled              { filter: grayscale(0.7); opacity: 0.55; cursor: not-allowed; transform: none; }
+
+.btn-text { font-size: clamp(1rem, 4.4vw, 1.25rem); }
+
+.btn-left  { background: var(--sky);      box-shadow: 0 6px 0 var(--sky-deep),      0 10px 14px rgba(48, 50, 49, 0.18); }
+.btn-right { background: var(--lavender); box-shadow: 0 6px 0 var(--lavender-deep), 0 10px 14px rgba(48, 50, 49, 0.18); }
+.btn-right:active:not(:disabled), .btn-right.is-pressed { box-shadow: 0 1px 0 var(--lavender-deep); }
+
+.btn-grab {
+  background: var(--pink);
+  min-height: 82px;
+  border-radius: 30px;
+  box-shadow: 0 7px 0 var(--pink-deep), 0 12px 16px rgba(48, 50, 49, 0.2);
+}
+.btn-grab .btn-text { font-size: clamp(1.25rem, 6vw, 1.7rem); }
+.btn-grab:active:not(:disabled) { box-shadow: 0 1px 0 var(--pink-deep); }
+.btn-grab:not(:disabled) { animation: grab-bounce 2.4s ease-in-out infinite; }
+@keyframes grab-bounce {
+  0%, 88%, 100% { transform: translateY(0); }
+  93%           { transform: translateY(-5px); }
+}
+
+/* Arrows drawn with CSS borders (no pictures needed) */
+.arrow {
+  width: 0;
+  height: 0;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  flex: none;
+}
+.arrow-left  { border-right: 15px solid var(--ink); }
+.arrow-right { border-left:  15px solid var(--ink); }
+
+/* Smaller buttons used on the reveal screen */
+.btn-small { min-height: 52px; font-size: 0.95rem; border-radius: 20px; width: 100%; }
+.btn-png  { background: var(--sky);      box-shadow: 0 5px 0 var(--sky-deep),      0 8px 12px rgba(48, 50, 49, 0.15); }
+.btn-jpg  { background: var(--lavender); box-shadow: 0 5px 0 var(--lavender-deep), 0 8px 12px rgba(48, 50, 49, 0.15); }
+.btn-add  { background: var(--mint);     box-shadow: 0 5px 0 var(--mint-deep),     0 8px 12px rgba(48, 50, 49, 0.15); }
+.btn-back { background: var(--peach);    box-shadow: 0 5px 0 var(--peach-deep),    0 8px 12px rgba(48, 50, 49, 0.15); }
+
+
+/* =====================================================================
+   5. COLLECTION PANEL
+   ===================================================================== */
+.collection {
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.65);
+  border: 3px solid var(--ink);
+  border-radius: 22px;
+  text-align: center;
+}
+.collection-title {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+.collection-count {
+  background: var(--pink);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 1px 10px;
+  font-size: 0.85rem;
+}
+.collection-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.slot {
+  aspect-ratio: 1 / 1;
+  background: #ffffff;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+.slot img { width: 92%; height: 92%; object-fit: contain; }
+.slot.locked img { filter: brightness(0); opacity: 0.18; }
+.slot.secret-found { box-shadow: 0 0 0 3px #ffe27a, 0 0 14px 3px #ffb3d9; }
+
+.link-btn {
+  margin-top: 10px;
+  background: none;
+  border: none;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--ink);
+  opacity: 0.6;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 6px;
+}
+
+
+/* =====================================================================
+   6. REVEAL SCREEN
+   ===================================================================== */
+.reveal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow-y: auto;
+  display: flex;
+  animation: fade-in 0.4s ease both;
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+.reveal-backdrop {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(255, 214, 232, 0.95), transparent 55%),
+    radial-gradient(circle at 85% 80%, rgba(206, 224, 255, 0.95), transparent 55%),
+    #fff4c8;
+}
+
+.reveal-inner {
+  position: relative;
+  width: min(94vw, 480px);
+  margin: auto;
+  padding: 18px 8px 28px;
+  text-align: center;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+
+/* ---- Blind box (stages 1 and 2) ---- */
+.box-tap {
+  position: relative;
+  z-index: 2;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 24px;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+  animation: box-pop 0.7s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+.box-tap img {
+  display: block;
+  width: min(78vw, 52svh, 380px);
+  height: auto;
+  animation: box-float 2.6s ease-in-out 0.8s infinite;
+  filter: drop-shadow(0 12px 14px rgba(48, 50, 49, 0.25));
+}
+.box-tap:focus-visible { outline: 4px solid var(--ink); outline-offset: 4px; }
+.box-tap.shake img     { animation: box-shake 0.55s ease both; }
+.box-tap:disabled      { cursor: default; }
+
+@keyframes box-pop {
+  from { transform: scale(0.2) rotate(-12deg); opacity: 0; }
+  to   { transform: scale(1)   rotate(0);      opacity: 1; }
+}
+@keyframes box-float {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50%      { transform: translateY(-10px) rotate(1.5deg); }
+}
+@keyframes box-shake {
+  0%   { transform: rotate(0) scale(1); }
+  20%  { transform: rotate(-8deg) scale(1.05); }
+  40%  { transform: rotate(7deg) scale(1.08); }
+  60%  { transform: rotate(-5deg) scale(1.06); }
+  80%  { transform: rotate(3deg) scale(1.03); }
+  100% { transform: rotate(0) scale(1); }
+}
+
+.prompt {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  padding: 10px 20px;
+  font-size: clamp(1.1rem, 5vw, 1.4rem);
+  font-weight: 900;
+  background: #ffffff;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 0 5px 0 rgba(48, 50, 49, 0.25);
+  animation: prompt-pulse 1.4s ease-in-out infinite;
+}
+@keyframes prompt-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.05); }
+}
+
+/* ---- Moonie card (stage 3) ---- */
+.moonie-card {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+.moonie-glow {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: min(86vw, 400px);
+  aspect-ratio: 1 / 1;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(255, 226, 122, 0.6) 45%, transparent 70%);
+  animation: glow-pulse 2.4s ease-in-out infinite;
+  z-index: -1;
+}
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.8; transform: translateX(-50%) scale(0.96); }
+  50%      { opacity: 1;   transform: translateX(-50%) scale(1.06); }
+}
+
+.moonie-img {
+  display: block;
+  width: min(74vw, 42svh, 340px);
+  height: auto;
+  filter: drop-shadow(0 14px 14px rgba(48, 50, 49, 0.25));
+  animation: moonie-pop 0.9s cubic-bezier(0.25, 1.6, 0.45, 1) both;
+}
+@keyframes moonie-pop {
+  0%   { transform: scale(0.1) rotate(-20deg) translateY(60px); opacity: 0; }
+  60%  { transform: scale(1.15) rotate(4deg)  translateY(-10px); opacity: 1; }
+  80%  { transform: scale(0.96) rotate(-2deg) translateY(0); }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+.moonie-name {
+  margin: 6px 0 0;
+  font-size: clamp(1.4rem, 6vw, 1.9rem);
+  line-height: 1.1;
+  animation: rise 0.5s ease 0.5s both;
+}
+.moonie-rarity {
+  margin: 0;
+  padding: 3px 14px;
+  font-weight: 900;
+  font-size: 0.95rem;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: #ffffff;
+  animation: rise 0.5s ease 0.6s both;
+}
+.moonie-rarity[data-rarity="Common"]     { background: #e6f1f7; }
+.moonie-rarity[data-rarity="Uncommon"]   { background: var(--mint); }
+.moonie-rarity[data-rarity="Rare"]       { background: var(--sky); }
+.moonie-rarity[data-rarity="Super Rare"] { background: var(--lavender); }
+.moonie-rarity[data-rarity="Secret"]     { background: linear-gradient(90deg, #ffd1e6, #fff0a8, #c8f4ff, #e5d2ff); }
+
+.moonie-desc {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  animation: rise 0.5s ease 0.7s both;
+}
+@keyframes rise {
+  from { transform: translateY(14px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.reveal-buttons {
+  width: 100%;
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 10px;
+  animation: rise 0.5s ease 0.85s both;
+}
+
+.message {
+  min-height: 1.3em;
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  max-width: 38ch;
+}
+
+/* ---- Secret Moonie extras ---- */
+.secret-banner {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  padding: 6px 18px;
+  font-weight: 900;
+  font-size: 1.1rem;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ffd1e6, #fff0a8, #c8f4ff, #e5d2ff, #ffd1e6);
+  background-size: 200% 100%;
+  animation: shimmer 2.5s linear infinite, prompt-pulse 1.2s ease-in-out infinite;
+}
+@keyframes shimmer { to { background-position: 200% 0; } }
+
+.reveal.secret .moonie-glow {
+  width: min(98vw, 470px);
+  background: conic-gradient(from 0deg, #ffb3d9, #fff0a8, #b8f0ff, #d9c2ff, #ffb3d9);
+  -webkit-mask-image: radial-gradient(circle, #000 25%, transparent 70%);
+          mask-image: radial-gradient(circle, #000 25%, transparent 70%);
+  animation: spin-glow 6s linear infinite;
+}
+@keyframes spin-glow {
+  from { transform: translateX(-50%) rotate(0deg)   scale(1.05); }
+  to   { transform: translateX(-50%) rotate(360deg) scale(1.05); }
+}
+
+
+/* =====================================================================
+   7. SPARKLING STARS  (created by game.js, removed when finished)
+   ===================================================================== */
+.sparkles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  overflow: visible;
+}
+.spark {
+  position: absolute;
+  width: var(--s, 18px);
+  height: var(--s, 18px);
+  margin: calc(var(--s, 18px) / -2) 0 0 calc(var(--s, 18px) / -2);
+  background: var(--c, #ffe27a);
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.9));
+  opacity: 0;
+  animation: twinkle var(--d, 1.6s) ease-in-out forwards;
+}
+@keyframes twinkle {
+  0%   { transform: scale(0)   rotate(0deg);   opacity: 0; }
+  35%  { transform: scale(1.2) rotate(70deg);  opacity: 1; }
+  55%  { transform: scale(0.8) rotate(110deg); opacity: 0.9; }
+  75%  { transform: scale(1.1) rotate(150deg); opacity: 1; }
+  100% { transform: scale(0)   rotate(220deg); opacity: 0; }
+}
+
+
+/* =====================================================================
+   8. REDUCED MOTION  (for people who turn off animations in their device)
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .btn-grab:not(:disabled),
+  .prompt, .box-tap img, .moonie-glow, .secret-banner,
+  .reveal.secret .moonie-glow { animation: none !important; }
+  .spark { animation-duration: 0.8s !important; }
+}
+
+
+/* Pictures can't be dragged or long-press saved (a small speed bump) */
+.moonie-img, .box-tap img, .slot img, .frame, .claw-img, .prize-box {
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+.moonie-img { pointer-events: none; }
