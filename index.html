@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Moonie Claw Club</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- =====================================================
+       MAIN GAME AREA: machine on one side, controls below
+       (or beside it on big screens)
+       ===================================================== -->
+  <main class="game" id="game">
+
+    <!-- ---------- THE MACHINE ---------- -->
+    <div class="stage" id="stage">
+
+      <!-- The clipping window: everything inside it is cut off at the
+           inner edges of the big glass window (see style.css, CONFIG 1). -->
+      <div class="window" id="window">
+        <!-- Prize boxes are added here by game.js -->
+        <div class="claw" id="claw" aria-hidden="true">
+          <div class="cable" id="cable"></div>
+          <img class="claw-img claw-open" id="clawOpen"
+               src="assets/claw/claw-open.png" alt="" draggable="false">
+          <img class="claw-img claw-closed" id="clawClosed"
+               src="assets/claw/claw-closed-box.png" alt="" draggable="false">
+        </div>
+      </div>
+
+      <!-- The machine frame sits ON TOP of the window, so the claw and the
+           boxes look like they are inside the machine. -->
+      <img class="frame" src="assets/machine/machine.png"
+           alt="Moonie claw machine" draggable="false">
+    </div>
+
+    <!-- ---------- CONTROLS (real HTML buttons, styled with CSS) ---------- -->
+    <section class="controls" id="controls" aria-label="Game controls">
+      <p class="hint" id="hint">Move the claw, then press GRAB!</p>
+
+      <div class="button-row">
+        <button class="btn btn-left" id="btnLeft" type="button" aria-label="Move claw left">
+          <span class="arrow arrow-left" aria-hidden="true"></span>
+          <span class="btn-text">LEFT</span>
+        </button>
+
+        <button class="btn btn-grab" id="btnGrab" type="button" aria-label="Grab a blind box">
+          <span class="btn-text">GRAB</span>
+        </button>
+
+        <button class="btn btn-right" id="btnRight" type="button" aria-label="Move claw right">
+          <span class="btn-text">RIGHT</span>
+          <span class="arrow arrow-right" aria-hidden="true"></span>
+        </button>
+      </div>
+
+      <p class="keys-tip">Keyboard: ← → to move, Space to grab</p>
+
+      <!-- Collection -->
+      <div class="collection" id="collection">
+        <h2 class="collection-title">My Moonie Collection
+          <span class="collection-count" id="collectionCount">0/8</span>
+        </h2>
+        <ul class="collection-grid" id="collectionGrid"></ul>
+        <button class="link-btn" id="btnClearCollection" type="button">Reset collection</button>
+      </div>
+    </section>
+  </main>
+
+
+  <!-- =====================================================
+       REVEAL SCREEN (close-up box -> open box -> Moonie)
+       ===================================================== -->
+  <div class="reveal" id="reveal" hidden>
+    <div class="reveal-backdrop"></div>
+
+    <div class="reveal-inner">
+
+      <!-- Sparkling stars are created here by game.js -->
+      <div class="sparkles" id="sparkles" aria-hidden="true"></div>
+
+      <p class="secret-banner" id="secretBanner" hidden>✨ SECRET MOONIE FOUND! ✨</p>
+
+      <!-- Stages 1 and 2: the blind box. Tap it! -->
+      <button class="box-tap" id="boxTap" type="button">
+        <img id="boxImg" src="assets/boxes/blind-box-closeup.png"
+             alt="Your blind box. Tap to open." draggable="false">
+      </button>
+
+      <p class="prompt" id="prompt" role="status" aria-live="polite">Tap your box to open it!</p>
+
+      <!-- Stage 3: the Moonie -->
+      <div class="moonie-card" id="moonieCard" hidden>
+        <div class="moonie-glow"></div>
+        <img class="moonie-img" id="moonieImg" src="" alt="" draggable="false">
+        <h2 class="moonie-name" id="moonieName"></h2>
+        <p class="moonie-rarity" id="moonieRarity"></p>
+        <p class="moonie-desc" id="moonieDesc"></p>
+
+        <div class="reveal-buttons">
+          <button class="btn btn-small btn-png" id="btnPng" type="button">Download PNG</button>
+          <button class="btn btn-small btn-jpg" id="btnJpg" type="button">Download JPEG</button>
+          <button class="btn btn-small btn-add" id="btnAdd" type="button">Add to collection</button>
+          <button class="btn btn-small btn-back" id="btnBack" type="button">Back to machine</button>
+        </div>
+        <p class="message" id="message" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
