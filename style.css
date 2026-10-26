@@ -1,20 +1,6 @@
-/* =====================================================================
-   PLAY WITH MOONIE — style.css
-
-   TABLE OF CONTENTS
-     1. CONFIG  PLAY WITH MOONIE  <-- start here
-     2. Page basics
-     3. Machine, window, claw and prize boxes
-     4. Controls (LEFT / GRAB / RIGHT)
-     5. Collection panel
-     6. Reveal screen (close-up box, open box, Moonie)
-     7. Sparkling stars
-     8. Reduced-motion setting
-   ===================================================================== */
-
 
 /* =====================================================================
-   1. CONFIG  — change numbers here, not in the middle of the file
+   1. CONFIG 
    ===================================================================== */
 :root {
 
@@ -194,7 +180,7 @@ img { max-width: 100%; -webkit-user-drag: none; user-select: none; }
   border-radius: 3px;
 }
 
-/* ---- The pile of blind boxes ---- */
+/* The pile of blind boxes */
 .prize-box {
   position: absolute;
   bottom: 0;
@@ -220,9 +206,6 @@ img { max-width: 100%; -webkit-user-drag: none; user-select: none; }
 }
 
 
-/* =====================================================================
-   4. CONTROLS
-   ===================================================================== */
 .controls {
   width: min(100%, 460px);
   display: grid;
