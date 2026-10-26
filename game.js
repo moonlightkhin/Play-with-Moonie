@@ -1,36 +1,7 @@
-/* =====================================================================
-   PLAY WITH MOONIE — game.js
-   All game rules, controls, animation steps and button behaviour.
 
-   TABLE OF CONTENTS
-     1. CONFIG: your Moonies, names, rarities and odds   <-- edit here
-     2. CONFIG: machine and claw settings
-     3. Page elements
-     4. Game state
-     5. Claw position and drawing
-     6. Controls (mouse, touch and keyboard)
-     7. The grab sequence
-     8. The reveal screen (tap, tap, Moonie!)
-     9. Sparkling stars
-    10. Downloading the Moonie (PNG and JPEG)
-    11. Collection
-    12. Start the game
-   ===================================================================== */
 'use strict';
 
 
-/* =====================================================================
-   1. CONFIG — YOUR MOONIES
-   Each Moonie has:
-     id          a short unique number-name (used for the download name)
-     name        the name shown on screen (placeholder names: change them!)
-     rarity      Common / Uncommon / Rare / Super Rare / Secret
-     weight      how likely it is. All eight weights add up to 100,
-                 so a weight of 25 means a 25% chance.
-     image       the picture file (relative path from index.html)
-     description the little sentence shown under the name
-     secret      true only for the special one
-   ===================================================================== */
 const MOONIES = [
   { id: 'moonie-01', name: 'Noodle Night Moonie', rarity: 'Common',     weight: 25,
     image: 'assets/moonie/Moonie01.png',
@@ -67,10 +38,8 @@ const MOONIES = [
 ];
 
 
-/* =====================================================================
-   2. CONFIG — MACHINE AND CLAW SETTINGS
-   (The window position and sizes live in style.css, section 1.)
-   ===================================================================== */
+/*   2. CONFIG — MACHINE AND CLAW SETTINGS
+   (The window position and sizes live in style.css, section 1.)  */
 const SETTINGS = {
 
   // How fast the claw slides left and right (1 = the whole window width per second)
@@ -498,8 +467,7 @@ async function resetMachine() {
 
 /* =====================================================================
    8. THE REVEAL SCREEN
-   Stage 1: close-up box (tap)  →  Stage 2: open box (tap)  →  Stage 3: Moonie
-   ===================================================================== */
+     ===================================================================== */
 function openReveal() {
   state.stage = 'closeup';
   state.tapLocked = false;
@@ -654,8 +622,6 @@ function stopSparkles() {
 
 /* =====================================================================
    10. DOWNLOADING THE MOONIE
-   We draw ONLY the doll picture onto an invisible canvas, then save it.
-   (Never a screenshot of the page.)
    ===================================================================== */
 function showMessage(text) { el.message.textContent = text; }
 
@@ -782,7 +748,7 @@ async function downloadMoonie(format) {
 
 
 /* =====================================================================
-   11. COLLECTION  (saved in the player's own browser)
+   11. COLLECTION 
    ===================================================================== */
 let memoryCollection = [];   // used if the browser will not allow saving
 
